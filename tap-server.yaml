@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sample-tap-server-http
+  name: sample-tap-server-http
+  namespace: gloo-system
+spec:
+  selector:
+    matchLabels:
+      app: sample-tap-server-http
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sample-tap-server-http
+    spec:
+      containers:
+      - image: gcr.io/solo-test-236622/sample-tap-server-http:0.0.2
+        name: sample-tap-server-http
+        # args: ["-text='Hello World!'"]
+        ports:
+        - containerPort: 8080
+          name: grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-tap-server-http
+  namespace: gloo-system
+  labels:
+    service: sample-tap-server-http
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: sample-tap-server-http
+---
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: sample-tap-server-http
+  namespace: gloo-system
+spec:
+  # useHttp2: true
+  static:
+    hosts:
+    - addr: sample-tap-server-http
+      port: 8080
